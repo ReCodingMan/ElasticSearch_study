@@ -2,10 +2,14 @@ package com.kuang;
 
 import com.alibaba.fastjson.JSON;
 import com.kuang.pojo.User;
+import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
@@ -88,6 +92,34 @@ class KuangshenEsApiApplicationTests {
 		// 打印文档的内容
 		System.out.println(getResponse.getSourceAsString());
 		System.out.println(getResponse);
+	}
+
+	/**
+	 * 更新文档的信息
+	 */
+	@Test
+	void testUpdateDocument() throws IOException {
+		UpdateRequest updateRequest = new UpdateRequest("kuang_index", "1");
+		updateRequest.timeout("1s");
+
+		// 打印文档的内容
+		User user = new User("狂神说Java", 18);
+		updateRequest.doc(JSON.toJSONString(user), XContentType.JSON);
+		UpdateResponse updateResponse = client.update(updateRequest, RequestOptions.DEFAULT);
+
+		System.out.println(updateResponse.status());
+	}
+
+	/**
+	 * 删除文档的信息
+	 */
+	@Test
+	void testDeleteDocument() throws IOException {
+		DeleteRequest deleteRequest = new DeleteRequest("kuang_index", "1");
+		deleteRequest.timeout("1s");
+
+		DeleteResponse deleteResponse = client.delete(deleteRequest, RequestOptions.DEFAULT);
+		System.out.println(deleteResponse.status());
 	}
 
 }
