@@ -1,4 +1,4 @@
-package com.config;
+package com.kuang.config;
 
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
@@ -22,5 +22,4 @@ public class ElasticSearchClientConfig {
                 RestClient.builder(new HttpHost("localhost", 9200,"http")));
         return client;
     }
-
 }
