@@ -24,9 +24,9 @@ public class ContentService {
     /**
      * 不能直接使用 @Autowired，需要 Spring 容器
      */
-    public static void main(String[] args) throws IOException {
-        new ContentService().parseContent("java");
-    }
+//    public static void main(String[] args) throws IOException {
+//        new ContentService().parseContent("java");
+//    }
 
     // 1、解析数据放入 es 索引中
     public Boolean parseContent(String keywords) throws IOException {
