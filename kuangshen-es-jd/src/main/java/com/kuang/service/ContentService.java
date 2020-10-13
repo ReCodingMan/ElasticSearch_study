@@ -10,12 +10,16 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.TermQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
+import org.elasticsearch.search.fetch.subphase.highlight.Highlighter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -80,6 +84,14 @@ public class ContentService {
         sourceBuilder.query(termQueryBuilder);
         sourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));
 
+        // 高亮
+        HighlightBuilder highlightBuilder = new HighlightBuilder();
+        highlightBuilder.field("title");
+        highlightBuilder.requireFieldMatch(false); // 多个高亮显示
+        highlightBuilder.preTags("<span sytle='color:red'>");
+        highlightBuilder.postTags("</span>");
+        sourceBuilder.highlighter(highlightBuilder);
+
         // 执行搜索
         searchRequest.source(sourceBuilder);
         SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
@@ -87,7 +99,22 @@ public class ContentService {
         // 解析对象
         ArrayList<Map<String, Object>> list = new ArrayList<>();
         for (SearchHit documentFields : searchResponse.getHits().getHits()) {
-            list.add(documentFields.getSourceAsMap());
+
+            Map<String, HighlightField> highlightFields = documentFields.getHighlightFields();
+            HighlightField title = highlightFields.get("title");
+            Map<String, Object> sourceAsMap = documentFields.getSourceAsMap(); // 原来的结果
+
+            // 解析高亮的字段，将原来的字段换为我们高亮的字段即可！
+            if (title != null) {
+                Text[] fragments = title.fragments();
+                String n_title = "";
+                for (Text text : fragments) {
+                    n_title += text;
+                }
+
+                sourceAsMap.put("title", n_title); // 高亮字段替换掉原来的内容即可！
+            }
+            list.add(sourceAsMap);
         }
 
         return list;
